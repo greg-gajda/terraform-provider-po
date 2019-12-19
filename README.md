@@ -23,3 +23,5 @@ you wouldn't find anything interesting in this repository.
 
 But, if you're using [Terraform](https://www.terraform.io/) to manage your infrastructure, 
 then it can be quite useful, as it delivers custom [Provider Plugin](https://www.terraform.io/docs/plugins/provider.html) for Prometheus Operator custom resources.
+
+Content of /kubernetes folder is taken from [official Terraform Kubernetes provider](https://github.com/terraform-providers/terraform-provider-kubernetes).
