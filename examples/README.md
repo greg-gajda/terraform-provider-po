@@ -1,4 +1,4 @@
-#Here are some terraform examples for Prometheus Operator custom resources
+**Here are some terraform examples for Prometheus Operator custom resources**
 
 * alertmanager
 * prometheus
