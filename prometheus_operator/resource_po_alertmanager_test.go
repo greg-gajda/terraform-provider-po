@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
 
-func TestAccKubernetesRole_basic(t *testing.T) {
+func TestAccPrometheusOperatorAlertmanager_basic(t *testing.T) {
 	var am po_types.Alertmanager
 	name := fmt.Sprintf("tf-acc-test:%s", acctest.RandStringFromCharSet(10, acctest.CharSetAlphaNum))
 
