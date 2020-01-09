@@ -1,6 +1,5 @@
 package prometheus_operator
 
-
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -174,4 +173,3 @@ func testAccPrometheusOperatorPrometheusDestroy(s *terraform.State) error {
 	}
 	return nil
 }
-
