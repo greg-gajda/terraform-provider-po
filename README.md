@@ -25,3 +25,5 @@ But, if you're using [Terraform](https://www.terraform.io/) to manage your infra
 then it can be quite useful, as it delivers custom [Provider Plugin](https://www.terraform.io/docs/plugins/provider.html) for Prometheus Operator custom resources.
 
 Content of /kubernetes folder is taken from [official Terraform Kubernetes provider](https://github.com/terraform-providers/terraform-provider-kubernetes).
+
+To acquire a binary for your OS, simply clone the project and run `go build` command.
