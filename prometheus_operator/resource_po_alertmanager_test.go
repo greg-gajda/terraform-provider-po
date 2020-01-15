@@ -26,7 +26,7 @@ func TestAccPrometheusOperatorAlertmanager_basic(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccPrometheusOperatorAlertmanagerExists("po_alertmanager.test", &am),
 					resource.TestCheckResourceAttr("po_alertmanager.test", "metadata.0.name", name),
-					resource.TestCheckResourceAttr("po_alertmanager.test", "metadata.0.name", "monitoring"),
+					resource.TestCheckResourceAttr("po_alertmanager.test", "metadata.0.namespace", "monitoring"),
 					resource.TestCheckResourceAttr("po_alertmanager.test", "metadata.0.labels.%", "1"),
 					resource.TestCheckResourceAttr("po_alertmanager.test", "metadata.0.labels.alertmanager", "main"),
 					resource.TestCheckResourceAttrSet("po_alertmanager.test", "metadata.0.generation"),
