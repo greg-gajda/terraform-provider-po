@@ -1,4 +1,4 @@
-# This is a terraform provider for prometheus operator
+# This is a terraform provider for Prometheus operator deployments on Kubernetes
 
 Why it may be useful to anyone?
 
@@ -7,9 +7,9 @@ But as a consequence of that simplicity, new [CustomResourceDefinitions](https:/
 
 Quoting official docs:
 The Prometheus Operator introduces additional resources in Kubernetes to declare the desired state of a Prometheus and Alertmanager cluster as well as the Prometheus configuration. The resources it introduces are:
-* Prometheus
-* Alertmanager
-* ServiceMonitor
+* **Prometheus**
+* **Alertmanager**
+* **ServiceMonitor**
 
 but there's also **PrometheusRule** and **PodMonitor**.
 
