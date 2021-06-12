@@ -1,7 +1,7 @@
 package prometheus_operator
 
 import (
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"strconv"

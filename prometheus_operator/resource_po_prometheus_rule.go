@@ -2,13 +2,14 @@ package prometheus_operator
 
 import (
 	"fmt"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	po_v1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	po_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	"log"
+	"context"
 )
 
 func resourcePOPrometheusRule() *schema.Resource {
@@ -26,7 +27,7 @@ func resourcePOPrometheusRule() *schema.Resource {
 			"metadata": namespacedMetadataSchema("prometheus rule", true),
 			"spec": {
 				Type:        schema.TypeList,
-				Description: "Spec defines the specification of the desired behavior of the deployment. More info https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusrulespec",
+				Description: "Spec defines the specification of the desired behavior of the deployment. More info https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheusrulespec",
 				Required:    true,
 				MaxItems:    1,
 				Elem: &schema.Resource{
@@ -34,7 +35,7 @@ func resourcePOPrometheusRule() *schema.Resource {
 						"groups": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "Content of Prometheus rule file. More info https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#rulegroup",
+							Description: "Content of Prometheus rule file. More info https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#rulegroup",
 							Elem: &schema.Resource{
 								Schema: RuleGroupSchema(),
 							},
@@ -61,7 +62,7 @@ func resourcePOPrometheusRuleCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[INFO] Creating PrometheusRule custom resource: %#v", monitor)
-	out, err := conn.PrometheusRules(metadata.Namespace).Create(&monitor)
+	out, err := conn.PrometheusRules(metadata.Namespace).Create(context.Background(), &monitor, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create PrometheusRule: %s", err)
 	}
@@ -81,7 +82,7 @@ func resourcePOPrometheusRuleExists(d *schema.ResourceData, meta interface{}) (b
 	}
 
 	log.Printf("[INFO] Checking PrometheusRule custom resource %s", name)
-	_, err = conn.PrometheusRules(namespace).Get(name, metav1.GetOptions{})
+	_, err = conn.PrometheusRules(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -99,7 +100,7 @@ func resourcePOPrometheusRuleRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[INFO] Reading PrometheusRule custom resource %s", name)
-	am, err := conn.PrometheusRules(namespace).Get(name, metav1.GetOptions{})
+	am, err := conn.PrometheusRules(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case errors.IsNotFound(err):
@@ -147,7 +148,7 @@ func resourcePOPrometheusRuleUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Failed to marshal update operations for PrometheusRule: %s", err)
 	}
 	log.Printf("[INFO] Updating PrometheusRule %q: %v", name, string(data))
-	out, err := conn.PrometheusRules(namespace).Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.PrometheusRules(namespace).Patch(context.Background(), name, pkgApi.JSONPatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to update PrometheusRule: %s", err)
 	}
@@ -164,7 +165,7 @@ func resourcePOPrometheusRuleDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[INFO] Deleting PrometheusRule: %q", name)
-	err = conn.PrometheusRules(namespace).Delete(name, &metav1.DeleteOptions{})
+	err = conn.PrometheusRules(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}

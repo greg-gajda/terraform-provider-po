@@ -67,8 +67,8 @@ func ContainerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 	return containerFields(isUpdatable, isInitContainer)
 }
 
-func VolumeSchema() *schema.Resource {
-	return volumeSchema()
+func VolumeSchema(isUpdatable bool) *schema.Resource {
+	return volumeSchema(isUpdatable)
 }
 
 func VolumeMountFields() map[string]*schema.Schema {

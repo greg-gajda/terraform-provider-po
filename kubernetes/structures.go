@@ -190,12 +190,12 @@ func ptrToString(s string) *string {
 	return &s
 }
 
-func ptrToInt(i int) *int {
-	return &i
-}
-
 func ptrToBool(b bool) *bool {
 	return &b
+}
+
+func ptrToInt(i int) *int {
+	return &i
 }
 
 func ptrToInt32(i int32) *int32 {
@@ -218,7 +218,7 @@ func base64EncodeStringMap(m map[string]interface{}) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range m {
 		value := v.(string)
-		result[k] = (base64.StdEncoding.EncodeToString([]byte(value)))
+		result[k] = base64.StdEncoding.EncodeToString([]byte(value))
 	}
 	return result
 }
@@ -612,4 +612,12 @@ func expandNodeSelectorTerms(l []interface{}) []api.NodeSelectorTerm {
 		obj[i] = *expandNodeSelectorTerm([]interface{}{n})
 	}
 	return obj
+}
+
+func flattenPersistentVolumeMountOptions(in []string) *schema.Set {
+	var out = make([]interface{}, len(in), len(in))
+	for i, v := range in {
+		out[i] = string(v)
+	}
+	return schema.NewSet(schema.HashString, out)
 }

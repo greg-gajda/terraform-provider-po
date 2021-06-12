@@ -5,6 +5,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	api "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func expandRBACRoleRef(in []interface{}) api.RoleRef {
@@ -79,6 +80,22 @@ func expandClusterRoleRules(in []interface{}) []api.PolicyRule {
 	return rules
 }
 
+func expandClusterRoleAggregationRule(in []interface{}) *api.AggregationRule {
+	if len(in) == 0 || in[0] == nil {
+		return &api.AggregationRule{}
+	}
+	ref := &api.AggregationRule{}
+	m := in[0].(map[string]interface{})
+
+	if v, ok := m["cluster_role_selectors"].([]interface{}); ok && len(v) > 0 {
+		crs := make([]metav1.LabelSelector, 0)
+		crs = append(crs, *expandLabelSelector(v))
+		ref.ClusterRoleSelectors = crs
+	}
+
+	return ref
+}
+
 func flattenRBACRoleRef(in api.RoleRef) []interface{} {
 	att := make(map[string]interface{})
 
@@ -121,6 +138,18 @@ func flattenClusterRoleRules(in []api.PolicyRule) []interface{} {
 	return att
 }
 
+func flattenClusterRoleAggregationRule(in *api.AggregationRule) []interface{} {
+	att := make(map[string]interface{})
+
+	if len(in.ClusterRoleSelectors) > 0 {
+		for _, crs := range in.ClusterRoleSelectors {
+			att["cluster_role_selectors"] = flattenLabelSelector(&crs)
+		}
+	}
+
+	return []interface{}{att}
+}
+
 // Patch Ops
 func patchRbacSubject(d *schema.ResourceData) PatchOperations {
 	o, n := d.GetChange("subject")
@@ -132,18 +161,18 @@ func patchRbacSubject(d *schema.ResourceData) PatchOperations {
 	if common > len(oldsubjects) {
 		common = len(oldsubjects)
 	}
-	for i, v := range newsubjects[:common] {
-		ops = append(ops, &ReplaceOperation{
-			Path:  "/subjects/" + strconv.Itoa(i),
-			Value: v,
-		})
-	}
 	if len(oldsubjects) > len(newsubjects) {
 		for i := len(newsubjects); i < len(oldsubjects); i++ {
 			ops = append(ops, &RemoveOperation{
 				Path: "/subjects/" + strconv.Itoa(len(oldsubjects)-i),
 			})
 		}
+	}
+	for i, v := range newsubjects[:common] {
+		ops = append(ops, &ReplaceOperation{
+			Path:  "/subjects/" + strconv.Itoa(i),
+			Value: v,
+		})
 	}
 	if len(newsubjects) > len(oldsubjects) {
 		for i, v := range newsubjects[common:] {
@@ -166,18 +195,18 @@ func patchRbacRule(d *schema.ResourceData) PatchOperations {
 	if common > len(oldrules) {
 		common = len(oldrules)
 	}
-	for i, v := range newrules[:common] {
-		ops = append(ops, &ReplaceOperation{
-			Path:  "/rules/" + strconv.Itoa(i),
-			Value: v,
-		})
-	}
 	if len(oldrules) > len(newrules) {
 		for i := len(newrules); i < len(oldrules); i++ {
 			ops = append(ops, &RemoveOperation{
 				Path: "/rules/" + strconv.Itoa(len(oldrules)-i),
 			})
 		}
+	}
+	for i, v := range newrules[:common] {
+		ops = append(ops, &ReplaceOperation{
+			Path:  "/rules/" + strconv.Itoa(i),
+			Value: v,
+		})
 	}
 	if len(newrules) > len(oldrules) {
 		for i, v := range newrules[common:] {
@@ -187,5 +216,19 @@ func patchRbacRule(d *schema.ResourceData) PatchOperations {
 			})
 		}
 	}
+	return ops
+}
+
+func patchRbacAggregationRule(d *schema.ResourceData) PatchOperations {
+	_, n := d.GetChange("aggregation_rule")
+	//oldrules := expandClusterRoleRules(o.([]interface{}))
+	newAggRule := expandClusterRoleAggregationRule(n.([]interface{}))
+	ops := make([]PatchOperation, 0)
+
+	ops = append(ops, &ReplaceOperation{
+		Path:  "/aggregationRule",
+		Value: newAggRule,
+	})
+
 	return ops
 }
