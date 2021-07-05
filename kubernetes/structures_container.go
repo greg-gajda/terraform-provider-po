@@ -178,6 +178,9 @@ func flattenConfigMapKeyRef(in *v1.ConfigMapKeySelector) []interface{} {
 	if in.Name != "" {
 		att["name"] = in.Name
 	}
+	if in.Optional != nil {
+		att["optional"] = *in.Optional
+	}
 	return []interface{}{att}
 }
 
@@ -225,6 +228,9 @@ func flattenSecretKeyRef(in *v1.SecretKeySelector) []interface{} {
 	}
 	if in.Name != "" {
 		att["name"] = in.Name
+	}
+	if in.Optional != nil {
+		att["optional"] = *in.Optional
 	}
 	return []interface{}{att}
 }
@@ -356,6 +362,7 @@ func flattenContainers(in []v1.Container) ([]interface{}, error) {
 
 		c["image_pull_policy"] = v.ImagePullPolicy
 		c["termination_message_path"] = v.TerminationMessagePath
+		c["termination_message_policy"] = v.TerminationMessagePolicy
 		c["stdin"] = v.Stdin
 		c["stdin_once"] = v.StdinOnce
 		c["tty"] = v.TTY
@@ -371,6 +378,9 @@ func flattenContainers(in []v1.Container) ([]interface{}, error) {
 		}
 		if v.ReadinessProbe != nil {
 			c["readiness_probe"] = flattenProbe(v.ReadinessProbe)
+		}
+		if v.StartupProbe != nil {
+			c["startup_probe"] = flattenProbe(v.StartupProbe)
 		}
 		if v.Lifecycle != nil {
 			c["lifecycle"] = flattenLifeCycle(v.Lifecycle)
@@ -471,6 +481,9 @@ func expandContainers(ctrs []interface{}) ([]v1.Container, error) {
 		if v, ok := ctr["readiness_probe"].([]interface{}); ok && len(v) > 0 {
 			cs[i].ReadinessProbe = expandProbe(v)
 		}
+		if v, ok := ctr["startup_probe"].([]interface{}); ok && len(v) > 0 {
+			cs[i].StartupProbe = expandProbe(v)
+		}
 		if v, ok := ctr["stdin"]; ok {
 			cs[i].Stdin = v.(bool)
 		}
@@ -479,6 +492,9 @@ func expandContainers(ctrs []interface{}) ([]v1.Container, error) {
 		}
 		if v, ok := ctr["termination_message_path"]; ok {
 			cs[i].TerminationMessagePath = v.(string)
+		}
+		if v, ok := ctr["termination_message_policy"]; ok {
+			cs[i].TerminationMessagePolicy = v1.TerminationMessagePolicy(v.(string))
 		}
 		if v, ok := ctr["tty"]; ok {
 			cs[i].TTY = v.(bool)
@@ -811,6 +827,9 @@ func expandConfigMapKeyRef(r []interface{}) (*v1.ConfigMapKeySelector, error) {
 	if v, ok := in["name"].(string); ok {
 		obj.Name = v
 	}
+	if v, ok := in["optional"]; ok {
+		obj.Optional = ptrToBool(v.(bool))
+	}
 	return obj, nil
 
 }
@@ -874,6 +893,9 @@ func expandSecretKeyRef(r []interface{}) (*v1.SecretKeySelector, error) {
 	}
 	if v, ok := in["name"].(string); ok {
 		obj.Name = v
+	}
+	if v, ok := in["optional"]; ok {
+		obj.Optional = ptrToBool(v.(bool))
 	}
 	return obj, nil
 }

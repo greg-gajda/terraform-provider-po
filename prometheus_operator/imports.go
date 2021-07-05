@@ -1,11 +1,11 @@
 package prometheus_operator
 
-import(
+import (
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	k8s "github.com/terraform-providers/terraform-provider-kubernetes"
+	k8s "github.com/hashicorp/terraform-provider-kubernetes"
 	api "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func namespacedMetadataSchema(objectName string, generatableName bool) *schema.Schema {
@@ -71,15 +71,13 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 	return k8s.ContainerFields(isUpdatable, isInitContainer)
 }
 
-func volumeSchema() *schema.Resource {
-	return k8s.VolumeSchema()
+func volumeSchema(isUpdatable bool) *schema.Resource {
+	return k8s.VolumeSchema(isUpdatable)
 }
 
 func volumeMountFields() map[string]*schema.Schema {
 	return k8s.VolumeMountFields()
 }
-
-
 
 func idParts(id string) (string, string, error) {
 	return k8s.IdParts(id)

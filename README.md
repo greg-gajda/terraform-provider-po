@@ -17,7 +17,7 @@ If you simply deliver your monitoring stack by running
 ```
 kubectl apply -f bundle.yaml
 ```
-from the official [Prometheus Operator](https://github.com/coreos/prometheus-operator) Github repo, 
+from the official [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) Github repo, 
 or by using [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator),
 you wouldn't find anything interesting in this repository.
 

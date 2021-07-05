@@ -309,7 +309,7 @@ func RelabelConfigSchema() map[string]*schema.Schema {
 			Type:     schema.TypeSet,
 			Optional: true,
 			Elem:     &schema.Schema{Type: schema.TypeString},
-			Description: "The source labels select values from existing labels. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#relabelconfig",
+			Description: "The source labels select values from existing labels. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#relabelconfig",
 		},
 	}
 }
@@ -318,12 +318,12 @@ func EndpointSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"port": {
 			Type:        schema.TypeString,
-			Description: "Name of the port this endpoint refers to. Mutually exclusive with targetPort. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+			Description: "Name of the port this endpoint refers to. Mutually exclusive with targetPort. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 			Optional:    true,
 		},
 		"path": {
 			Type:        schema.TypeString,
-			Description: "HTTP path to scrape for metrics. 	More info https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+			Description: "HTTP path to scrape for metrics. 	More info https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 			Optional:    true,
 		},
 		"scheme": {
@@ -345,7 +345,7 @@ func EndpointSchema() map[string]*schema.Schema {
 			Type:        schema.TypeList,
 			Optional:    true,
 			MaxItems:    1,
-			Description: "TLS configuration to use when scraping the endpoint. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#tlsconfig",
+			Description: "TLS configuration to use when scraping the endpoint. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#tlsconfig",
 			Elem: &schema.Resource{
 				Schema: TLSConfigSchema(),
 			},

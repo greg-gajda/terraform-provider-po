@@ -2,13 +2,14 @@ package prometheus_operator
 
 import (
 	"fmt"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	v1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	"log"
+	"context"
 )
 
 func resourcePOPrometheus() *schema.Resource {
@@ -26,14 +27,14 @@ func resourcePOPrometheus() *schema.Resource {
 			"metadata": namespacedMetadataSchema("prometheus", true),
 			"spec": {
 				Type:        schema.TypeList,
-				Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+				Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 				Required:    true,
 				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"base_image": {
 							Type:        schema.TypeString,
-							Description: "Base image that is used to deploy pods, without tag. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Base image that is used to deploy pods, without tag. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 							ForceNew:    true,
 							Default:     "quay.io/prometheus/prometheus",
@@ -94,17 +95,17 @@ func resourcePOPrometheus() *schema.Resource {
 						},
 						"external_url": {
 							Type:        schema.TypeString,
-							Description: "The external URL the Prometheus instances will be available under. This is necessary to generate correct URLs. This is necessary if Prometheus is not served from root of a DNS name. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "The external URL the Prometheus instances will be available under. This is necessary to generate correct URLs. This is necessary if Prometheus is not served from root of a DNS name. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"service_account_name": {
 							Type:        schema.TypeString,
-							Description: "ServiceAccountName is the name of the ServiceAccount to use to run the Alertmanager Pods. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "ServiceAccountName is the name of the ServiceAccount to use to run the Alertmanager Pods. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"paused": {
 							Type:        schema.TypeBool,
-							Description: "If set to true all actions on the underlaying managed objects are not goint to be performed, except for delete actions. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "If set to true all actions on the underlaying managed objects are not goint to be performed, except for delete actions. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 							Default:     false,
 						},
@@ -145,17 +146,17 @@ func resourcePOPrometheus() *schema.Resource {
 						},
 						"port_name": {
 							Type:        schema.TypeString,
-							Description: "Port name used for the pods and governing service. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Port name used for the pods and governing service. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"priority_class_name": {
 							Type:        schema.TypeString,
-							Description: "Priority class assigned to the alertmanager Pods. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Priority class assigned to the alertmanager Pods. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"listen_local": {
 							Type:        schema.TypeBool,
-							Description: "ListenLocal makes the Alertmanager server listen on loopback. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "ListenLocal makes the Alertmanager server listen on loopback. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 							Default:     false,
 						},
@@ -163,7 +164,7 @@ func resourcePOPrometheus() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							ForceNew:    true,
-							Description: "Containers allows injecting additional containers. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Containers allows injecting additional containers. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Elem: &schema.Resource{
 								Schema: containerFields(true, false),
 							},
@@ -172,7 +173,7 @@ func resourcePOPrometheus() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							ForceNew:    true,
-							Description: "InitContainers allows adding initContainers to the pod definition. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "InitContainers allows adding initContainers to the pod definition. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Elem: &schema.Resource{
 								Schema: containerFields(true, true),
 							},
@@ -180,7 +181,7 @@ func resourcePOPrometheus() *schema.Resource {
 						"node_selector": {
 							Type:        schema.TypeMap,
 							Optional:    true,
-							Description: "Define which Nodes the Alertmanager Pods are scheduled on. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Define which Nodes the Alertmanager Pods are scheduled on. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 						},
 						"security_context": {
 							Type:        schema.TypeList,
@@ -206,7 +207,7 @@ func resourcePOPrometheus() *schema.Resource {
 							Optional:    true,
 							Computed:    true,
 							Description: "List of volumes that can be mounted by containers belonging to the pod. More info: http://kubernetes.io/docs/user-guide/volumes",
-							Elem:        volumeSchema(),
+							Elem:        volumeSchema(true),
 						},
 						"toleration": {
 							Type:        schema.TypeList,
@@ -228,7 +229,7 @@ func resourcePOPrometheus() *schema.Resource {
 						"rule_selector": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "A selector to select which PrometheusRules to mount for loading alerting rules from. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#prometheusspec",
+							Description: "A selector to select which PrometheusRules to mount for loading alerting rules from. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#prometheusspec",
 							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: labelSelectorFields(true),
@@ -265,7 +266,7 @@ func resourcePOPrometheusCreate(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	log.Printf("[INFO] Creating Prometheus custom resource: %#v", prometheus)
-	out, err := conn.Prometheuses(metadata.Namespace).Create(&prometheus)
+	out, err := conn.Prometheuses(metadata.Namespace).Create(context.Background(), &prometheus, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create Prometheus: %s", err)
 	}
@@ -285,7 +286,7 @@ func resourcePOPrometheusExists(d *schema.ResourceData, meta interface{}) (bool,
 	}
 
 	log.Printf("[INFO] Checking Prometheus custom resource %s", name)
-	_, err = conn.Prometheuses(namespace).Get(name, metav1.GetOptions{})
+	_, err = conn.Prometheuses(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -303,7 +304,7 @@ func resourcePOPrometheusRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	log.Printf("[INFO] Reading Prometheus %s", name)
-	am, err := conn.Prometheuses(namespace).Get(name, metav1.GetOptions{})
+	am, err := conn.Prometheuses(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case errors.IsNotFound(err):
@@ -351,7 +352,7 @@ func resourcePOPrometheusUpdate(d *schema.ResourceData, meta interface{}) error 
 		return fmt.Errorf("Failed to marshal update operations for Prometheus: %s", err)
 	}
 	log.Printf("[INFO] Updating Prometheus %q: %v", name, string(data))
-	out, err := conn.Prometheuses(namespace).Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.Prometheuses(namespace).Patch(context.Background(), name, pkgApi.JSONPatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to update Prometheus: %s", err)
 	}
@@ -368,7 +369,7 @@ func resourcePOPrometheusDelete(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	log.Printf("[INFO] Deleting Prometheus: %q", name)
-	err = conn.Prometheuses(namespace).Delete(name, &metav1.DeleteOptions{})
+	err = conn.Prometheuses(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}

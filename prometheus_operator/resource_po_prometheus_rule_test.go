@@ -3,10 +3,10 @@ package prometheus_operator
 import (
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
-
+    "context"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/resource"
 )
@@ -112,7 +112,7 @@ func testAccPrometheusOperatorPrometheusRuleExists(n string, obj *po_types.Prome
 			return err
 		}
 
-		out, err := conn.PrometheusRules(namespace).Get(name, meta_v1.GetOptions{})
+		out, err := conn.PrometheusRules(namespace).Get(context.TODO(), name, meta_v1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -135,7 +135,7 @@ func testAccPrometheusOperatorPrometheusRuleDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.PrometheusRules(namespace).Get(name, meta_v1.GetOptions{})
+		resp, err := conn.PrometheusRules(namespace).Get(context.TODO(), name, meta_v1.GetOptions{})
 		if err == nil {
 			if resp.Name == rs.Primary.ID {
 				return fmt.Errorf("Service still exists: %s", rs.Primary.ID)

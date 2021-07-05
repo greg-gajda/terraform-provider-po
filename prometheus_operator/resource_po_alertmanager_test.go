@@ -1,9 +1,10 @@
 package prometheus_operator
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
@@ -111,7 +112,7 @@ func testAccPrometheusOperatorAlertmanagerExists(n string, obj *po_types.Alertma
 			return err
 		}
 
-		out, err := conn.Alertmanagers(namespace).Get(name, meta_v1.GetOptions{})
+		out, err := conn.Alertmanagers(namespace).Get(context.TODO(), name, meta_v1.GetOptions{})
 		if err != nil {
 			return err
 		}
@@ -135,7 +136,7 @@ func testAccPrometheusOperatorAlertmanagerDestroy(s *terraform.State) error {
 			return err
 		}
 
-		resp, err := conn.Alertmanagers(namespace).Get(name, meta_v1.GetOptions{})
+		resp, err := conn.Alertmanagers(namespace).Get(context.TODO(), name, meta_v1.GetOptions{})
 		if err == nil {
 			if resp.Name == rs.Primary.ID {
 				return fmt.Errorf("Service still exists: %s", rs.Primary.ID)

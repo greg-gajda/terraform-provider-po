@@ -2,13 +2,14 @@ package prometheus_operator
 
 import (
 	"fmt"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	v1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	"log"
+	"context"
 )
 
 func resourcePOAlertmanager() *schema.Resource {
@@ -26,7 +27,7 @@ func resourcePOAlertmanager() *schema.Resource {
 			"metadata": namespacedMetadataSchema("alertmanager", true),
 			"spec": {
 				Type:        schema.TypeList,
-				Description: "AlertmanagerSpec is a specification of the desired behavior of the Alertmanager cluster. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+				Description: "AlertmanagerSpec is a specification of the desired behavior of the Alertmanager cluster. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 				Required:    true,
 				MaxItems:    1,
 				Elem: &schema.Resource{
@@ -97,24 +98,24 @@ func resourcePOAlertmanager() *schema.Resource {
 						},
 						"port_name": {
 							Type:        schema.TypeString,
-							Description: "Port name used for the pods and governing service. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Port name used for the pods and governing service. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"priority_class_name": {
 							Type:        schema.TypeString,
-							Description: "Priority class assigned to the alertmanager Pods. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Priority class assigned to the alertmanager Pods. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"listen_local": {
 							Type:        schema.TypeBool,
-							Description: "ListenLocal makes the Alertmanager server listen on loopback. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "ListenLocal makes the Alertmanager server listen on loopback. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Optional:    true,
 						},
 						"container": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							ForceNew:    true,
-							Description: "Containers allows injecting additional containers. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Containers allows injecting additional containers. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Elem: &schema.Resource{
 								Schema: containerFields(true, false),
 							},
@@ -123,7 +124,7 @@ func resourcePOAlertmanager() *schema.Resource {
 							Type:        schema.TypeList,
 							Optional:    true,
 							ForceNew:    true,
-							Description: "InitContainers allows adding initContainers to the pod definition. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "InitContainers allows adding initContainers to the pod definition. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 							Elem: &schema.Resource{
 								Schema: containerFields(true, true),
 							},
@@ -131,7 +132,7 @@ func resourcePOAlertmanager() *schema.Resource {
 						"node_selector": {
 							Type:        schema.TypeMap,
 							Optional:    true,
-							Description: "Define which Nodes the Alertmanager Pods are scheduled on. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
+							Description: "Define which Nodes the Alertmanager Pods are scheduled on. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#alertmanager",
 						},
 						"security_context": {
 							Type:        schema.TypeList,
@@ -157,7 +158,7 @@ func resourcePOAlertmanager() *schema.Resource {
 							Optional:    true,
 							Computed:    true,
 							Description: "List of volumes that can be mounted by containers belonging to the pod. More info: http://kubernetes.io/docs/user-guide/volumes",
-							Elem:        volumeSchema(),
+							Elem:        volumeSchema(true),
 						},
 						"volume_mount": {
 							Type:        schema.TypeList,
@@ -198,7 +199,7 @@ func resourcePOAlertmanagerCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[INFO] Creating Alertmanager custom resource: %#v", alertmanager)
-	out, err := conn.Alertmanagers(metadata.Namespace).Create(&alertmanager)
+	out, err := conn.Alertmanagers(metadata.Namespace).Create(context.Background(), &alertmanager, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create Alertmanager: %s", err)
 	}
@@ -218,7 +219,7 @@ func resourcePOAlertmanagerExists(d *schema.ResourceData, meta interface{}) (boo
 	}
 
 	log.Printf("[INFO] Checking Alertmanager custom resource %s", name)
-	_, err = conn.Alertmanagers(namespace).Get(name, metav1.GetOptions{})
+	_, err = conn.Alertmanagers(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -236,7 +237,7 @@ func resourcePOAlertmanagerRead(d *schema.ResourceData, meta interface{}) error 
 	}
 
 	log.Printf("[INFO] Reading Alertmanager %s", name)
-	am, err := conn.Alertmanagers(namespace).Get(name, metav1.GetOptions{})
+	am, err := conn.Alertmanagers(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case errors.IsNotFound(err):
@@ -284,7 +285,7 @@ func resourcePOAlertmanagerUpdate(d *schema.ResourceData, meta interface{}) erro
 		return fmt.Errorf("Failed to marshal update operations for Alertmanager: %s", err)
 	}
 	log.Printf("[INFO] Updating Alertmanager %q: %v", name, string(data))
-	out, err := conn.Alertmanagers(namespace).Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.Alertmanagers(namespace).Patch(context.Background(), name, pkgApi.JSONPatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to update Alertmanager: %s", err)
 	}
@@ -301,7 +302,7 @@ func resourcePOAlertmanagerDelete(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[INFO] Deleting Alertmanager: %q", name)
-	err = conn.Alertmanagers(namespace).Delete(name, &metav1.DeleteOptions{})
+	err = conn.Alertmanagers(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
