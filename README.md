@@ -1,5 +1,7 @@
 # This is a terraform provider for Prometheus operator deployments on Kubernetes
 
+This branch is built with newer version of k8s sdk.
+
 Why it may be useful to anyone?
 
 Prometheus [Operator](https://coreos.com/operators/) makes the management of Prometheus based monitoring stack easier.
