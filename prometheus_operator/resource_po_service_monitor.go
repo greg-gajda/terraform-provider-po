@@ -2,13 +2,14 @@ package prometheus_operator
 
 import (
 	"fmt"
-	po_types "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
-	po_v1 "github.com/coreos/prometheus-operator/pkg/apis/monitoring/v1"
+	po_types "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	po_v1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	"log"
+	"context"
 )
 
 func resourcePOServiceMonitor() *schema.Resource {
@@ -26,32 +27,32 @@ func resourcePOServiceMonitor() *schema.Resource {
 			"metadata": namespacedMetadataSchema("service monitor", true),
 			"spec": {
 				Type:        schema.TypeList,
-				Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+				Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 				Required:    true,
 				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"job_label": {
 							Type:        schema.TypeString,
-							Description: "The label to use to retrieve the job name from. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+							Description: "The label to use to retrieve the job name from. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 							Optional:    true,
 						},
 						"target_labels": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Description: "TargetLabels transfers labels on the Kubernetes Service onto the target. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+							Description: "TargetLabels transfers labels on the Kubernetes Service onto the target. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 						},
 						"pod_target_labels": {
 							Type:        schema.TypeList,
 							Optional:    true,
 							Elem:        &schema.Schema{Type: schema.TypeString},
-							Description: "PodTargetLabels transfers labels on the Kubernetes Pod onto the target. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+							Description: "PodTargetLabels transfers labels on the Kubernetes Pod onto the target. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 						},
 						"endpoints": {
 							Type:        schema.TypeList,
 							Optional:    true,
-							Description: "A list of endpoints allowed as part of this ServiceMonitor. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+							Description: "A list of endpoints allowed as part of this ServiceMonitor. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 							Elem: &schema.Resource{
 								Schema: EndpointSchema(),
 							},
@@ -76,7 +77,7 @@ func resourcePOServiceMonitor() *schema.Resource {
 						},
 						"sample_limit": {
 							Type:        schema.TypeInt,
-							Description: "SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. More info: https://github.com/coreos/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
+							Description: "SampleLimit defines per-scrape limit on number of scraped samples that will be accepted. More info: https://github.com/prometheus-operator/prometheus-operator/blob/master/Documentation/api.md#servicemonitorspec",
 							Optional:    true,
 						},
 					},
@@ -101,7 +102,7 @@ func resourcePOServiceMonitorCreate(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[INFO] Creating ServiceMonitor custom resource: %#v", monitor)
-	out, err := conn.ServiceMonitors(metadata.Namespace).Create(&monitor)
+	out, err := conn.ServiceMonitors(metadata.Namespace).Create(context.Background(), &monitor, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to create ServiceMonitor: %s", err)
 	}
@@ -121,7 +122,7 @@ func resourcePOServiceMonitorExists(d *schema.ResourceData, meta interface{}) (b
 	}
 
 	log.Printf("[INFO] Checking ServiceMonitor custom resource %s", name)
-	_, err = conn.ServiceMonitors(namespace).Get(name, metav1.GetOptions{})
+	_, err = conn.ServiceMonitors(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil
@@ -139,7 +140,7 @@ func resourcePOServiceMonitorRead(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	log.Printf("[INFO] Reading ServiceMonitor custom resource %s", name)
-	am, err := conn.ServiceMonitors(namespace).Get(name, metav1.GetOptions{})
+	am, err := conn.ServiceMonitors(namespace).Get(context.Background(), name, metav1.GetOptions{})
 	if err != nil {
 		switch {
 		case errors.IsNotFound(err):
@@ -187,7 +188,7 @@ func resourcePOServiceMonitorUpdate(d *schema.ResourceData, meta interface{}) er
 		return fmt.Errorf("Failed to marshal update operations for ServiceMonitor: %s", err)
 	}
 	log.Printf("[INFO] Updating ServiceMonitor %q: %v", name, string(data))
-	out, err := conn.ServiceMonitors(namespace).Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.ServiceMonitors(namespace).Patch(context.Background(), name, pkgApi.JSONPatchType, data, metav1.PatchOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to update ServiceMonitor: %s", err)
 	}
@@ -204,7 +205,7 @@ func resourcePOServiceMonitorDelete(d *schema.ResourceData, meta interface{}) er
 	}
 
 	log.Printf("[INFO] Deleting ServiceMonitor: %q", name)
-	err = conn.ServiceMonitors(namespace).Delete(name, &metav1.DeleteOptions{})
+	err = conn.ServiceMonitors(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}

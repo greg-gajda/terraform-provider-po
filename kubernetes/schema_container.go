@@ -259,6 +259,11 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 												Optional:    true,
 												Description: "Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names",
 											},
+											"optional": {
+												Type:        schema.TypeBool,
+												Optional:    true,
+												Description: "Specify whether the ConfigMap or its key must be defined.",
+											},
 										},
 									},
 								},
@@ -266,7 +271,7 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 									Type:        schema.TypeList,
 									Optional:    true,
 									MaxItems:    1,
-									Description: "Selects a field of the pod: supports metadata.name, metadata.namespace, metadata.labels, metadata.annotations, spec.nodeName, spec.serviceAccountName, status.podIP..",
+									Description: "Selects a field of the pod: supports metadata.name, metadata.namespace, metadata.labels, metadata.annotations, spec.nodeName, spec.serviceAccountName, status.podIP.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"api_version": {
@@ -287,7 +292,7 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 									Type:        schema.TypeList,
 									Optional:    true,
 									MaxItems:    1,
-									Description: "Selects a field of the pod: supports metadata.name, metadata.namespace, metadata.labels, metadata.annotations, spec.nodeName, spec.serviceAccountName, status.podIP..",
+									Description: "Selects a resource of the container: only resources limits and requests (limits.cpu, limits.memory, limits.ephemeral-storage, requests.cpu, requests.memory and requests.ephemeral-storage) are currently supported.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"container_name": {
@@ -306,7 +311,7 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 									Type:        schema.TypeList,
 									Optional:    true,
 									MaxItems:    1,
-									Description: "Selects a field of the pod: supports metadata.name, metadata.namespace, metadata.labels, metadata.annotations, spec.nodeName, spec.serviceAccountName, status.podIP..",
+									Description: "Selects a key of a secret in the pod's namespace.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"key": {
@@ -318,6 +323,11 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 												Type:        schema.TypeString,
 												Optional:    true,
 												Description: "Name of the referent. More info: http://kubernetes.io/docs/user-guide/identifiers#names",
+											},
+											"optional": {
+												Type:        schema.TypeBool,
+												Optional:    true,
+												Description: "Specify whether the Secret or its key must be defined.",
 											},
 										},
 									},
@@ -485,13 +495,19 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 				Schema: resourcesField(),
 			},
 		},
-
 		"security_context": {
 			Type:        schema.TypeList,
 			Optional:    true,
 			MaxItems:    1,
 			Description: "Security options the pod should run with. More info: http://releases.k8s.io/HEAD/docs/design/security_context.md",
 			Elem:        securityContextSchema(),
+		},
+		"startup_probe": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			MaxItems:    1,
+			Description: "StartupProbe indicates that the Pod has successfully initialized. If specified, no other probes are executed until this completes successfully. If this probe fails, the Pod will be restarted, just as if the livenessProbe failed. This can be used to provide different probe parameters at the beginning of a Pod's lifecycle, when it might take a long time to load data or warm a cache, than during steady-state operation. This cannot be updated. This is an alpha feature enabled by the StartupProbe feature flag. More info: https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle#container-probes",
+			Elem:        probeSchema(),
 		},
 		"stdin": {
 			Type:        schema.TypeBool,
@@ -510,6 +526,13 @@ func containerFields(isUpdatable, isInitContainer bool) map[string]*schema.Schem
 			Optional:    true,
 			Default:     "/dev/termination-log",
 			Description: "Optional: Path at which the file to which the container's termination message will be written is mounted into the container's filesystem. Message written is intended to be brief final status, such as an assertion failure message. Defaults to /dev/termination-log. Cannot be updated.",
+		},
+		"termination_message_policy": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice([]string{"File", "FallbackToLogsOnError"}, false),
+			Computed:     true,
+			Description:  "Optional: Indicate how the termination message should be populated. File will use the contents of terminationMessagePath to populate the container status message on both success and failure. FallbackToLogsOnError will use the last chunk of container log output if the termination message file is empty and the container exited with an error. The log output is limited to 2048 bytes or 80 lines, whichever is smaller. Defaults to File. Cannot be updated.",
 		},
 		"tty": {
 			Type:        schema.TypeBool,

@@ -1,5 +1,7 @@
 # This is a terraform provider for Prometheus operator deployments on Kubernetes
 
+This branch is built with newer version of k8s sdk.
+
 Why it may be useful to anyone?
 
 Prometheus [Operator](https://coreos.com/operators/) makes the management of Prometheus based monitoring stack easier.
@@ -17,7 +19,7 @@ If you simply deliver your monitoring stack by running
 ```
 kubectl apply -f bundle.yaml
 ```
-from the official [Prometheus Operator](https://github.com/coreos/prometheus-operator) Github repo, 
+from the official [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator) Github repo, 
 or by using [Helm chart](https://github.com/helm/charts/tree/master/stable/prometheus-operator),
 you wouldn't find anything interesting in this repository.
 
